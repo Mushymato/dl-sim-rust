@@ -1,7 +1,11 @@
 extern crate rusqlite;
 use rusqlite::{Connection, Result};
 
+mod mappings;
+
 pub const DB_FILE: &str = "dl.sqlite";
+
+/* define */
 
 macro_rules! db_data_struct {
     (pub struct $name:ident { $pkname:ident : $pktype:ty, $($fname:ident : $ftype:ty),* }) => {
@@ -19,12 +23,12 @@ macro_rules! db_data_struct {
             //     NAMES
             // }
 
-            pub fn populate(conn: &Connection, pk: $pktype) -> Result<$name>{
+            pub fn populate(conn: &Connection, pk: &$pktype) -> Result<$name>{
                 let mut x = 0;
                 let mut counter = || {x+=1; return x};
                 return conn.query_row(
                     stringify!(SELECT $pkname, $(($fname)),* FROM $name WHERE $pkname=?;),
-                    &[pk],
+                    &[&pk],
                     |r| {
                     Ok($name {
                         $pkname : r.get(0)?,
@@ -37,11 +41,18 @@ macro_rules! db_data_struct {
 }
 
 db_data_struct! {
+    pub struct TextLabel {
+        _Id: String,
+        _Text: String
+    }
+}
+
+db_data_struct! {
     pub struct PlayerActionHitAttribute {
         _Id: String, // name of this hit attr
         // _FontEffect: String,
-        _HitExecType: u8, // 1: attack, 2: buff
-        _TargetGroup: u8, // targets, 1: self, 2: team, 3: enemy, 4: ?, 5: dodge, 6: also team, 7: lowest hp teammate, 8: buffs(?)
+        _HitExecType: mappings::HitExecType, // 1: attack, 2: buff
+        _TargetGroup: mappings::TargetGroup, // targets, 1: self, 2: team, 3: enemy, 4: ?, 5: dodge, 6: also team, 7: lowest hp teammate, 8: buffs(?)
         // _Elemental01: u8,
         // _Elemental02: u8,
         // _Attributes02: u8,
@@ -63,7 +74,7 @@ db_data_struct! {
         _RecoveryValue: u32, // heal potency
         _AdditionRecoverySp: u32, // sp gain
         _RecoverySpRatio: f64, // sp gain %
-        _RecoverySpSkillIndex: u8, // sp gain target, 0: all, 1: s1, etc
+        _RecoverySpSkillIndex: mappings::SkillIndex, // sp gain target, 0: all, 1: s1, etc
         _AdditionRecoveryDpPercentage: f64, // dp gain %
         _RecoveryDragonTime: f64, // dtime gain
         _AdditionRecoveryDpLv1: u32, // dp gain
@@ -85,16 +96,16 @@ db_data_struct! {
         _ActionCondition1: u32, // act cond stuff
         // _HeadText: String,
         // _ActionGrant: u32,
-        _KillerState1: u8, // killer
-        _KillerState2: u8,
-        _KillerState3: u8,
+        _KillerState1: mappings::KillerState, // killer
+        _KillerState2: mappings::KillerState,
+        _KillerState3: mappings::KillerState,
         // 1: Poison, 2: Burn, 3: Freeze, 4: Paralysis, 5: Blind, 6: Stun, 7: Curse, 8: UNKNOWN08, 9: Bog, 10: Sleep, 11: Frostbite, 103: Def down, 198: Buffed, 201: Break
         _KillerStateDamageRate: f64, // killer modifier
         // _KillerStateRelease: u8,
-        _DamageUpRateByBuffCount: f64, // more damage per buff stack
+        _DamageUpRateByBuffCount: f64 // more damage per buff stack
         // _SplitDamageCount: u32, // seems like enemy only stuff
         // _SplitDamageCount2: u32,
-        _ArmorBreakLv: u8 // iframe, 1: roll/buff, 4: skill iframe
+        // _ArmorBreakLv: u8 // iframe, 1: roll/buff, 4: skill iframe
         // _InvincibleBreakLv: u8,
         // _KnockBackType: u8,
         // _KnockBackDistance: f64,
@@ -111,7 +122,7 @@ db_data_struct! {
 db_data_struct! {
     pub struct ActionCondition {
         _Id: u32,
-        _Type: u8, // affliction type
+        _Type: mappings::Affliction, // affliction type
         // _Text: String, // label
         // _TextEx: String, // label
         _UniqueIcon: u32, // icon id
@@ -139,16 +150,16 @@ db_data_struct! {
         // _EventProbability: u64, // blind rate
         // _EventCoefficient: f64, // bog move speed
         // _DamageCoefficient: f64, // bog damage mod
-        _TargetAction: u8, // target action, 2: fs, 3: s1?, 4: s2?, 5: buff skills
+        // _TargetAction: u8,
         _TargetElemental: u8, // bit flags, 00001: flame, 00010: water, 00100: wind, 01000: light, 10000: shadow
         // _ConditionAbs: 0,
         _ConditionDebuff: u8, // debuff cond, 16 for bleed
-        _RateHP: f64,
-        _RateAttack: f64,
+        _RateHP: f64, // hp
+        _RateAttack: f64, // str
         _RateDefense: f64, // def down
         _RateDefenseB: f64, // zone def down
-        _RateCritical: f64,
-        _RateSkill: f64,
+        _RateCritical: f64, // crit rate
+        _RateSkill: f64, // skill dmg
         _RateBurst: f64, // fs
         _RateRecovery: f64, // rec potency
         _RateRecoverySp: f64, // skill haste
@@ -188,7 +199,7 @@ db_data_struct! {
         _UniqueRegeneSp01: f64, // sp regen
         _AutoRegeneS1: f64, // also sp regen (?)
         // _AutoRegeneSW: f64,
-        _RateReraise: f64,
+        // _RateReraise: f64,
         _RateArmored: f64, // knockback res
         _RateDamageShield: f64, // shield
         _RateDamageShield2: f64, // divergent shield
@@ -200,8 +211,8 @@ db_data_struct! {
         // _RateNicked: f64,
         // _TransSkill: f64, somthing for skill shift?
         // _GrantSkill: 0,
-        _DisableAction: u32, // laxi shut down
-        _DisableMove: u32, // tobias alt x
+        _DisableAction: u8, // laxi shut down
+        _DisableMove: u8, // tobias alt x
         // _InvincibleLv: u32,
         _ComboShift: bool, // stance change
         _EnhancedBurstAttack: u32, // alt fs
@@ -223,8 +234,85 @@ db_data_struct! {
     }
 }
 
-impl PlayerActionHitAttribute {
-    pub fn link_action_condition(self, conn: &Connection) -> Result<ActionCondition> {
-        return ActionCondition::populate(&conn, self._ActionCondition1);
+db_data_struct! {
+    pub struct AbilityData {
+        _Id: u32,
+        // _EventId: u32,
+        _PartyPowerWeight: u32, // might
+        // _Name: String, // label
+        // _Details: String, // label
+        // _ViewAbilityGroupId1: u32,
+        // _ViewAbilityGroupId2: u32,
+        // _ViewAbilityGroupId3: u32,
+        // _AbilityIconName: String,
+        _UnitType: u8, // 0: self, 1: team?
+        _ElementalType: mappings::Element,
+        _WeaponType: mappings::Weapon,
+        _OnSkill: mappings::SkillIndex,
+        // _SkillOwner: u32,
+        // _OwnerMode: u32,
+        _ConditionType: u32,
+        _ExpireCondition: bool, // used for afflict guards
+        _ConditionValue: f64,
+        _Probability: u32,
+        _OccurenceNum: u32, // number of times buff can happen
+        _MaxCount: u32, // kinda like above, but different :v
+        _CoolTime: f64, // cd in seconds
+        _TargetAction: mappings::TargetAction,
+        _ShiftGroupId: u32, // see AbilityShiftGroup
+        // _HeadText: String,
+        _AbilityType1: u32,
+        _VariousId1a: u32,
+        _VariousId1b: u32,
+        _VariousId1c: u32,
+        _VariousId1str: String,
+        _AbilityLimitedGroupId1: u32, // see AbilityLimitedGroup
+        _TargetAction1: mappings::TargetAction,
+        _AbilityType1UpValue: f64,
+        _AbilityType2: u32,
+        _VariousId2a: u32,
+        _VariousId2b: u32,
+        _VariousId2c: u32,
+        _VariousId2str: String,
+        _AbilityLimitedGroupId2: u32, // see AbilityLimitedGroup
+        _TargetAction2: mappings::TargetAction,
+        _AbilityType2UpValue: f64,
+        _AbilityType3: u32,
+        _VariousId3a: u32,
+        _VariousId3b: u32,
+        _VariousId3c: u32,
+        _VariousId3str: String,
+        _AbilityLimitedGroupId3: u32, // see AbilityLimitedGroup
+        _TargetAction3: mappings::TargetAction,
+        _AbilityType3UpValue: f64
     }
 }
+
+/* impl */
+
+macro_rules! link_data_struct {
+    ($name:ty {$($func:ident : $dkey:ident -> $dname:ident),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection, cb: fn(&$dname)) {
+                match $dname::populate(&conn, &self.$dkey){
+                    Ok(r) => cb(&r),
+                    Err(_e) => (),
+                }
+            })*
+        }
+    };
+}
+
+link_data_struct!(
+    PlayerActionHitAttribute {
+        link_action_condition: _ActionCondition1 -> ActionCondition
+    }
+);
+
+link_data_struct!(
+    ActionCondition {
+        link_damaged_hit_attr: _DamageLink -> PlayerActionHitAttribute,
+        link_remove_condition: _RemoveConditionId -> ActionCondition
+    }
+);
