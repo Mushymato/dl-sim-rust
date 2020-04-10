@@ -1,6 +1,15 @@
 extern crate rusqlite;
-use crate::data::mappings::*;
+use crate::data::mappings::{Element, SkillIndex, Weapon};
+use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result};
+
+from_sql_enum! {
+    pub enum TargetAction {
+        // 2: fs, 7: auto
+        BURST = 2,
+        AUTO = 7
+    }
+}
 
 db_data_struct! {
     pub struct AbilityData {

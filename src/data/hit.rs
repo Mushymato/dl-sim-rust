@@ -1,6 +1,47 @@
 extern crate rusqlite;
-use crate::data::mappings::*;
+use crate::data::mappings::{Affliction, SkillIndex};
+use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result};
+
+from_sql_enum! {
+    pub enum HitExecType {
+        ATTACK = 1,
+        BUFF = 2
+    }
+}
+
+from_sql_enum! {
+    pub enum TargetGroup {
+        // targets, 1: self, 2: team, 3: enemy, 4: ?, 5: dodge, 6: also team, 7: lowest hp teammate, 8: buffs(?)
+        SELF = 1,
+        TEAM = 2,
+        ENEMY = 3,
+        DODGE = 5,
+        TEAMBUFF = 6,
+        TEAMMATE = 7,
+        ENEMYHIT = 8
+    }
+}
+
+from_sql_enum! {
+    pub enum KillerState {
+        // 1: Poison, 2: Burn, 3: Freeze, 4: Paralysis, 5: Blind, 6: Stun, 7: Curse, 8: UNKNOWN08, 9: Bog, 10: Sleep, 11: Frostbite, 103: Def down, 198: Buffed, 201: Break
+        POISON = 1,
+        BURN = 2,
+        FREEZE = 3,
+        PARALYSIS = 4,
+        BLIND = 5,
+        STUN = 6,
+        CURSE = 7,
+        UNKNOWN08 = 8,
+        BOG = 9,
+        SLEEP = 10,
+        FROSTBITE = 11,
+        DEFDOWN = 103,
+        BUFFED = 198,
+        BREAK = 201
+    }
+}
 
 db_data_struct! {
     pub struct PlayerActionHitAttribute {
