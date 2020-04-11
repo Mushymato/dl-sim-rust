@@ -230,11 +230,103 @@ db_data_struct! {
     }
 }
 
-link_data_struct!(
-    PlayerActionHitAttribute {
-        link_action_condition: _ActionCondition1 -> ActionCondition
+from_sql_enum! {
+    pub enum CommandType{
+        PARTS_MOTION = 2,
+        MOVEMENT = 5,
+        ROTATION = 7,
+        MARKER = 8,
+        BULLET = 9,
+        HIT = 10,
+        EFFECT = 11,
+        SOUND = 12,
+        CAMERA_MOTION = 13,
+        SEND_SIGNAL = 14,
+        ACTIVE_CANCEL = 15,
+        TARGETING = 17, // spin cancel ?
+        ACTION_END = 23,
+        MULTI_BULLET = 24,
+        ANIMATION = 25, // or maybe effects ?
+        CONTROL = 30, // some kinda control related thing
+        COLLISION = 37, // seen in arrange bullet
+        PARABOLA_BULLET = 41,
+        TIMESTOP = 48, // control animation playback ?
+        TIMECURVE = 49, // control animation playback ?
+        PIVOT_BULLET = 53,
+        MOVEMENT_IN_SKILL = 54, // only eze s1 uses this
+        ROTATION_IN_SKILL = 55,
+        FIRE_STOCK_BULLET = 59,
+        CONDITION_TEXT = 63, // unsure where text is sourced, not in TextLabel
+        SETTING_HIT = 66
     }
-);
+}
+
+db_data_struct! {
+    pub struct ActionParts {
+        // _Id: u32,
+        _ref: u32,
+        pub _seq: u32,
+        _seconds: f64,
+        _speed: f64,
+        _duration: f64,
+        // _activateId: u32,
+        pub commandType: CommandType,
+        _motionState: String,
+        _motionFrame: u32,
+        _blendDuration: f64,
+        _isBlend: u32,
+        _isEndSyncMotion: u32,
+        _isIgnoreFinishCondition: u32,
+        _isIdleAfterCancel: u32,
+        _chargeSec: f64,
+        _chargeLvSec: String,
+        _bulletSpeed: f64,
+        _delayTime: f64,
+        _collisionHitInterval: f64,
+        _isHitDelete: u32,
+        _hitLabel: String,
+        _hitAttrLabel: String,
+        _abHitAttrLabel: String,
+        _bulletNum: u32,
+        _generateNum: u32,
+        _generateDelay: f64,
+        _signalType: u32,
+        _decoId: u32,
+        _actionId: u32,
+        _keepActionEnd: u32,
+        _keepActionId1: u32,
+        _keepActionId2: u32,
+        _actionType: u32,
+        _motionEnd: bool,
+        // _animationName: String,
+        _isVisible: bool,
+        _isActionClear: bool
+    }
+}
+
+db_data_struct! {
+    pub struct PlayerAction {
+        _Id: u32,
+        // _ActionName: String,
+        _Range: f64,
+        _CanTurnPrepare: u32,
+        _IsDragonAttack: bool,
+        _IsDefaultSkill: bool,
+        _IsChargeSkill: bool,
+        _IsHeroSkill: bool,
+        _HealType: u32,
+        _MaxStockBullet: u32,
+        _NextAction: u32,
+        _IsLoopAction: bool,
+        _MaxAdditionalInput: u32,
+        _IsAllyTarget: bool,
+        _BurstMarkerId: u32,
+        _IsLongRangeCamera: u32,
+        _IgnoreLongRangeCamera: u32,
+        _OverwriteVoice: String,
+        _ConsumeEp: u32
+    }
+}
 
 link_data_struct!(
     ActionCondition {
@@ -242,3 +334,76 @@ link_data_struct!(
         link_remove_condition: _RemoveConditionId -> ActionCondition
     }
 );
+
+link_data_struct!(
+    PlayerActionHitAttribute {
+        link_action_condition: _ActionCondition1 -> ActionCondition
+    }
+);
+
+// link_data_struct!(
+//     ActionParts {
+//         link_hit_label: _hitLabel -> PlayerActionHitAttribute,
+//         link_hit_attr_label: _hitAttrLabel -> PlayerActionHitAttribute,
+//         link_ab_hit_attr_label: _abHitAttrLabel -> PlayerActionHitAttribute
+//     }
+// );
+
+link_data_struct!(
+    PlayerAction {
+        link_next_action: _NextAction -> PlayerAction
+    }
+);
+
+link_data_struct_multi!(
+    PlayerAction {
+        link_action_parts: _Id -> ActionParts
+    }
+);
+
+macro_rules! link_hit_attr_levels {
+    ($name:ty {$($func:ident : $dkey:ident -> $dname:ident),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<$dname>> {
+                let len = self.$dkey.len();
+                if len > 4 && &self.$dkey[(len-4)..(len-2)] == "LV"{
+                    let skey = &self.$dkey[0..(len-2)].to_string();
+                    return $dname::populate_conditionally(&conn, "PlayerActionHitAttribute._Id LIKE ? || \'%\'", &[&skey]);
+                }else{
+                    return $dname::populate_multiple(&conn, &self.$dkey);
+                }
+            })*
+        }
+    };
+}
+
+link_hit_attr_levels! (
+    ActionParts {
+        link_hit_label: _hitLabel -> PlayerActionHitAttribute,
+        link_hit_attr_label: _hitAttrLabel -> PlayerActionHitAttribute,
+        link_ab_hit_attr_label: _abHitAttrLabel -> PlayerActionHitAttribute
+    }
+);
+
+// impl ActionParts {
+//     pub fn link_hit_label(&self, conn: &Connection) -> Result<Vec<PlayerActionHitAttribute>> {
+//         // let mut stmt = conn.prepare(stringify!(SELECT $pkname, $(($fname)),* FROM $name WHERE $pkname=?;))?;
+//         // let rows = stmt.query_map(&[&val], |r| {
+//         //     let mut x = 0;
+//         //     let mut counter = || {x+=1; return x};
+//         //     Ok($name {
+//         //         $pkname : r.get(0)?,
+//         //         $($fname: match r.get(counter()) {
+//         //             Ok(d) => d,
+//         //             Err(_e) => <$ftype>::default(),
+//         //         }),*
+//         //     })
+//         // })?;
+//         // let mut res = Vec::new();
+//         // for q_res in rows {
+//         //     res.push(q_res?);
+//         // }
+//         // return Ok(res);
+//     }
+// }

@@ -4,10 +4,10 @@ pub const DB_FILE: &str = "dl.sqlite";
 
 macro_rules! db_data_struct {
     ($namevis:vis struct $name:ident { $pkvis:vis $pkname:ident : $pktype:ty, $($fvis:vis $fname:ident : $ftype:ty),* }) => {
-        #[derive(Debug)]
+        #[derive(Debug, Default)]
         #[allow(non_snake_case)]
         $namevis struct $name {
-            $pkname : $pktype,
+            $pkvis $pkname : $pktype,
             $($fvis $fname : $ftype),*
         }
 
@@ -22,14 +22,56 @@ macro_rules! db_data_struct {
                 let mut x = 0;
                 let mut counter = || {x+=1; return x};
                 return conn.query_row(
-                    stringify!(SELECT $pkname, $(($fname)),* FROM $name WHERE $pkname=?;),
+                    stringify!(SELECT $pkname, $($fname),* FROM $name WHERE $pkname=?;),
                     &[&pk],
                     |r| {
                     Ok($name {
                         $pkname : r.get(0)?,
-                        $($fname: r.get(counter())?),*
+                        $($fname: match r.get(counter()) {
+                            Ok(d) => d,
+                            Err(_e) => <$ftype>::default(),
+                        }),*
                     })
                 });
+            }
+
+            pub fn populate_multiple(conn: &Connection, val: &$pktype) -> Result<Vec<$name>>{
+                let mut stmt = conn.prepare(stringify!(SELECT $pkname, $($fname),* FROM $name WHERE $pkname=?;))?;
+                let rows = stmt.query_map(&[&val], |r| {
+                    let mut x = 0;
+                    let mut counter = || {x+=1; return x};
+                    Ok($name {
+                        $pkname : r.get(0)?,
+                        $($fname: match r.get(counter()) {
+                            Ok(d) => d,
+                            Err(_e) => <$ftype>::default(),
+                        }),*
+                    })
+                })?;
+                let mut res = Vec::new();
+                for q_res in rows {
+                    res.push(q_res?);
+                }
+                return Ok(res);
+            }
+            pub fn populate_conditionally(conn: &Connection, conditions: &str, values: &[&$pktype]) -> Result<Vec<$name>>{
+                let mut stmt = conn.prepare(&format!(stringify!(SELECT $pkname, $($fname),* FROM $name WHERE {}), conditions))?;
+                let rows = stmt.query_map(values, |r| {
+                    let mut x = 0;
+                    let mut counter = || {x+=1; return x};
+                    Ok($name {
+                        $pkname : r.get(0)?,
+                        $($fname: match r.get(counter()) {
+                            Ok(d) => d,
+                            Err(_e) => <$ftype>::default(),
+                        }),*
+                    })
+                })?;
+                let mut res = Vec::new();
+                for q_res in rows {
+                    res.push(q_res?);
+                }
+                return Ok(res);
             }
         }
 
@@ -45,11 +87,19 @@ macro_rules! link_data_struct {
     ($name:ty {$($func:ident : $dkey:ident -> $dname:ident),*}) => {
         #[allow(dead_code)]
         impl $name {
-            $(pub fn $func(&self, conn: &Connection, cb: fn(&$dname)) {
-                match $dname::populate(&conn, &self.$dkey){
-                    Ok(r) => cb(&r),
-                    Err(_e) => (),
-                }
+            $(pub fn $func(&self, conn: &Connection) -> Result<$dname> {
+                return $dname::populate(&conn, &self.$dkey);
+            })*
+        }
+    };
+}
+
+macro_rules! link_data_struct_multi {
+    ($name:ty {$($func:ident : $dkey:ident -> $dname:ident),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<$dname>> {
+                return $dname::populate_multiple(&conn, &self.$dkey);
             })*
         }
     };
@@ -57,7 +107,8 @@ macro_rules! link_data_struct {
 
 macro_rules! from_sql_enum(
     (pub enum $name:ident {$($ename:ident = $evalue:tt),*}) => {
-        #[derive(Debug)]
+        #[derive(Debug, PartialEq, Eq)]
+        #[allow(non_camel_case_types)]
         pub enum $name {
             UNKNOWN = -1,
             NONE = 0,
@@ -71,6 +122,9 @@ macro_rules! from_sql_enum(
                     _ => Ok($name::UNKNOWN)
                 })
             }
+        }
+        impl Default for $name {
+            fn default() -> Self { $name::NONE }
         }
     }
 );
@@ -129,8 +183,8 @@ pub mod mappings {
     }
 }
 
-pub mod hit;
-pub use hit::*;
+pub mod action;
+pub use action::*;
 pub mod ability;
 pub use ability::*;
 pub mod label;
