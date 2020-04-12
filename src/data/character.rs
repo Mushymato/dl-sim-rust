@@ -5,7 +5,6 @@ use crate::data::ability::{AbilityData, ExAbilityData};
 use crate::data::action::PlayerAction;
 use crate::data::equipment::DragonData;
 use crate::data::label::TextLabel;
-use crate::data::mappings::{Element, Weapon};
 use crate::data::skill::SkillData;
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result, NO_PARAMS};
@@ -73,10 +72,10 @@ db_data_struct! {
         _Name: String,
         _SecondName: String,
         // _EmblemId: u32,
-        _WeaponType: Weapon,
+        _WeaponType: u8,
         _Rarity: u8,
         _MaxLimitBreakCount: u8,
-        _ElementalType: Element,
+        _ElementalType: u8,
         // _CharaType: u32,
         _BaseId: u32,
         _VariationId: u32,

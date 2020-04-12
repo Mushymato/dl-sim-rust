@@ -128,9 +128,11 @@ macro_rules! link_label {
     ($name:ty {$($func:ident : $dkey:ident -> TextLabel),*}) => {
         #[allow(dead_code)]
         impl $name {
-            $(pub fn $func(&self, conn: &Connection) -> Result<String> {
-                let label = TextLabel::populate(&conn, &self.$dkey)?;
-                return Ok(label._Text);
+            $(pub fn $func(&self, conn: &Connection) -> String {
+                match TextLabel::populate(&conn, &self.$dkey){
+                    Ok(label) => return label._Text,
+                    Err(_o) => return self.$dkey.clone()
+                }
             })*
         }
     };
@@ -199,60 +201,62 @@ macro_rules! from_sql_enum(
     }
 );
 
-pub mod mappings {
-    extern crate rusqlite;
-    use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
+// pub mod mappings {
+//     extern crate rusqlite;
+//     use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 
-    from_sql_enum! {
-        pub enum SkillIndex {
-            S1 = 1,
-            S2 = 2,
-            S3 = 3
-        }
-    }
+//     from_sql_enum! {
+//         pub enum SkillIndex {
+//             S1 = 1,
+//             S2 = 2,
+//             S3 = 3
+//         }
+//     }
 
-    from_sql_enum! {
-        pub enum Affliction {
-            // 1: Poison, 2: Burn, 3: Freeze, 4: Paralysis, 5: Blind, 6: Stun, 7: Curse, 8: UNKNOWN08, 9: Bog, 10: Sleep, 11: Frostbite, 103: Def down, 198: Buffed, 201: Break
-            POISON = 1,
-            BURN = 2,
-            FREEZE = 3,
-            PARALYSIS = 4,
-            BLIND = 5,
-            STUN = 6,
-            CURSE = 7,
-            UNKNOWN08 = 8,
-            BOG = 9,
-            SLEEP = 10,
-            FROSTBITE = 11,
-            RECOVERY = 99
-        }
-    }
+//     from_sql_enum! {
+//         pub enum Affliction {
+//             // 1: Poison, 2: Burn, 3: Freeze, 4: Paralysis, 5: Blind, 6: Stun, 7: Curse, 8: UNKNOWN08, 9: Bog, 10: Sleep, 11: Frostbite, 103: Def down, 198: Buffed, 201: Break
+//             POISON = 1,
+//             BURN = 2,
+//             FREEZE = 3,
+//             PARALYSIS = 4,
+//             BLIND = 5,
+//             STUN = 6,
+//             CURSE = 7,
+//             UNKNOWN08 = 8,
+//             BOG = 9,
+//             SLEEP = 10,
+//             FROSTBITE = 11,
+//             RECOVERY = 99
+//         }
+//     }
 
-    from_sql_enum! {
-        pub enum Element {
-            FLAME = 1,
-            WATER = 2,
-            WIND = 3,
-            LIGHT = 4,
-            SHADOW = 5
-        }
-    }
+//     from_sql_enum! {
+//         pub enum Element {
+//             FLAME = 1,
+//             WATER = 2,
+//             WIND = 3,
+//             LIGHT = 4,
+//             SHADOW = 5
+//         }
+//     }
 
-    from_sql_enum! {
-        pub enum Weapon {
-            SWORD = 1,
-            BLADE = 2,
-            DAGGER = 3,
-            AXE = 4,
-            LANCE = 5,
-            BOW = 6,
-            WAND = 7,
-            STAFF = 8
-        }
-    }
-}
+//     from_sql_enum! {
+//         pub enum Weapon {
+//             SWORD = 1,
+//             BLADE = 2,
+//             DAGGER = 3,
+//             AXE = 4,
+//             LANCE = 5,
+//             BOW = 6,
+//             WAND = 7,
+//             STAFF = 8
+//         }
+//     }
+// }
 
+pub mod common;
+pub use common::*;
 pub mod action;
 pub use action::*;
 pub mod ability;

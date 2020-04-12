@@ -9,19 +9,12 @@ fn main() -> Result<()> {
 
     let all_chara = CharaData::populate_all(&conn)?;
     for (_, chara) in &all_chara {
-        match chara.link_name(&conn) {
-            Ok(name) => {
-                println!("{} HP {} ATK {}", name, chara.max_hp(), chara.max_atk());
-            }
-            Err(_e) => {
-                println!(
-                    "{} HP {} ATK {}",
-                    chara._Name,
-                    chara.max_hp(),
-                    chara.max_atk()
-                );
-            }
-        }
+        println!(
+            "{} HP {} ATK {}",
+            chara.link_name(&conn),
+            chara.max_hp(),
+            chara.max_atk()
+        );
     }
 
     // let res = PlayerAction::populate(&conn, &799000)?;

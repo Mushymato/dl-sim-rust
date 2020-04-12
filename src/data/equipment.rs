@@ -4,7 +4,6 @@ extern crate rusqlite;
 use crate::data::ability::AbilityData;
 use crate::data::action::PlayerAction;
 use crate::data::label::TextLabel;
-use crate::data::mappings::{Element, Weapon};
 use crate::data::skill::SkillData;
 use rusqlite::{Connection, Result, NO_PARAMS};
 
@@ -54,7 +53,7 @@ db_data_struct! {
         _SecondName: String,
         // _EmblemId: u32,
         _Rarity: u32,
-        _ElementalType: Element,
+        _ElementalType: u8,
         _BaseId: u32,
         _VariationId: u32,
         _IsPlayable: u32,
@@ -130,9 +129,9 @@ db_data_struct! {
     pub struct WeaponData {
         _Id: u32,
         _Name: String,
-        _Type: Weapon,
+        _Type: u8,
         _Rarity: u32,
-        _ElementalType: Element,
+        _ElementalType: u8,
         // _MinHp: u32,
         _MaxHp: u32,
         // _MinAtk: u32,

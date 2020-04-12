@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 extern crate rusqlite;
-use crate::data::mappings::{Affliction, SkillIndex};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result, NO_PARAMS};
 
@@ -72,7 +71,7 @@ db_data_struct! {
         _RecoveryValue: u32, // heal potency
         _AdditionRecoverySp: u32, // sp gain
         _RecoverySpRatio: f64, // sp gain %
-        _RecoverySpSkillIndex: SkillIndex, // sp gain target, 0: all, 1: s1, etc
+        _RecoverySpSkillIndex: u8, // sp gain target, 0: all, 1: s1, etc
         _AdditionRecoveryDpPercentage: f64, // dp gain %
         _RecoveryDragonTime: f64, // dtime gain
         _AdditionRecoveryDpLv1: u32, // dp gain
@@ -120,7 +119,7 @@ db_data_struct! {
 db_data_struct! {
     pub struct ActionCondition {
         _Id: u32,
-        _Type: Affliction, // affliction type
+        _Type: u8, // affliction type
         // _Text: String, // label
         // _TextEx: String, // label
         _UniqueIcon: u32, // icon id

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 extern crate rusqlite;
-use crate::data::mappings::{Element, SkillIndex, Weapon};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result, NO_PARAMS};
 
@@ -173,9 +172,9 @@ db_data_struct! {
         // _ViewAbilityGroupId3: u32,
         // _AbilityIconName: String,
         _UnitType: u8, // 0: self, 1: team?
-        _ElementalType: Element,
-        _WeaponType: Weapon,
-        _OnSkill: SkillIndex,
+        _ElementalType: u8,
+        _WeaponType: u8,
+        _OnSkill: u8,
         // _SkillOwner: u32,
         // _OwnerMode: u32,
         _ConditionType: u32,
