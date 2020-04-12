@@ -28,11 +28,11 @@ db_data_struct! {
     }
 }
 
-link_combo_chain_actions! (
+link_combo_chain_actions! {
     CharaUniqueCombo {
         link_combo_actions: _ActionId, _MaxComboNum -> PlayerAction
     }
-);
+}
 
 db_data_struct! {
     pub struct CharaModeData {
@@ -50,20 +50,20 @@ db_data_struct! {
     }
 }
 
-link_data_struct!(
+link_data_struct! {
     CharaModeData {
         link_action: _ActionId -> PlayerAction,
         link_unique_combo: _UniqueComboId -> CharaUniqueCombo,
         link_skill_1: _Skill1Id -> SkillData,
         link_skill_2: _Skill2Id -> SkillData
     }
-);
+}
 
-link_burst_attack_actions! (
+link_burst_attack_actions! {
     CharaModeData {
         link_burst_attack_actions: _BurstAttackId -> PlayerAction
     }
-);
+}
 
 db_data_struct! {
     pub struct CharaData {
@@ -145,7 +145,7 @@ db_data_struct! {
     }
 }
 
-link_data_struct!(
+link_data_struct! {
     CharaData {
         link_mode_1: _ModeId1 -> CharaModeData,
         link_mode_2: _ModeId2 -> CharaModeData,
@@ -159,7 +159,7 @@ link_data_struct!(
         link_dash_attack_action: _DashAttack -> PlayerAction,
         link_dodge_action: _Avoid -> PlayerAction
     }
-);
+}
 
 link_burst_attack_actions! {
     CharaData {

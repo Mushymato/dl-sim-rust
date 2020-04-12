@@ -328,35 +328,35 @@ db_data_struct! {
     }
 }
 
-link_data_struct!(
+link_data_struct! {
     ActionCondition {
         link_damaged_hit_attr: _DamageLink -> PlayerActionHitAttribute,
         link_remove_condition: _RemoveConditionId -> ActionCondition
     }
-);
+}
 
-link_data_struct!(
+link_data_struct! {
     PlayerActionHitAttribute {
         link_action_condition: _ActionCondition1 -> ActionCondition
     }
-);
+}
 
-link_data_struct!(
+link_data_struct! {
     PlayerAction {
         link_next_action: _NextAction -> PlayerAction
     }
-);
+}
 
-link_data_struct_multi!(
+link_data_struct_multi! {
     PlayerAction {
         link_action_parts: _Id -> ActionParts
     }
-);
+}
 
-link_hit_attr_levels! (
+link_hit_attr_levels! {
     ActionParts {
         link_hit_label: _hitLabel -> PlayerActionHitAttribute,
         link_hit_attr_label: _hitAttrLabel -> PlayerActionHitAttribute,
         link_ab_hit_attr_label: _abHitAttrLabel -> PlayerActionHitAttribute
     }
-);
+}
