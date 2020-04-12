@@ -105,6 +105,45 @@ macro_rules! link_data_struct_multi {
     };
 }
 
+macro_rules! link_hit_attr_levels {
+    ($name:ty {$($func:ident : $dkey:ident -> PlayerActionHitAttribute),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<PlayerActionHitAttribute>> {
+                let len = self.$dkey.len();
+                if len > 4 && &self.$dkey[(len-4)..(len-2)] == "LV"{
+                    let skey = &self.$dkey[0..(len-2)].to_string();
+                    return PlayerActionHitAttribute::populate_conditionally(&conn, "PlayerActionHitAttribute._Id LIKE ? || \'%\'", &[&skey]);
+                }else{
+                    return PlayerActionHitAttribute::populate_multiple(&conn, &self.$dkey);
+                }
+            })*
+        }
+    };
+}
+
+macro_rules! link_burst_attack_actions {
+    ($name:ty {$($func:ident : $dkey:ident -> PlayerAction),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<PlayerAction>> {
+                return PlayerAction::populate_conditionally(&conn, "PlayerAction._Id >= ? AND PlayerAction._Id < ?", &[&self.$dkey, &(&self.$dkey+5)]);
+            })*
+        }
+    };
+}
+
+macro_rules! link_combo_chain_actions {
+    ($name:ty {$($func:ident : $dkey:ident, $cmaxkey:ident -> PlayerAction),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<PlayerAction>> {
+                return PlayerAction::populate_conditionally(&conn, "PlayerAction._Id >= ? AND PlayerAction._Id < ?", &[&self.$dkey, &(self.$dkey+self.$cmaxkey)]);
+            })*
+        }
+    };
+}
+
 macro_rules! from_sql_enum(
     (pub enum $name:ident {$($ename:ident = $evalue:tt),*}) => {
         #[derive(Debug, PartialEq, Eq)]
@@ -187,6 +226,8 @@ pub mod action;
 pub use action::*;
 pub mod ability;
 pub use ability::*;
+pub mod skill;
+pub use skill::*;
 pub mod label;
 pub use label::*;
 pub mod character;

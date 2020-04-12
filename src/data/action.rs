@@ -341,14 +341,6 @@ link_data_struct!(
     }
 );
 
-// link_data_struct!(
-//     ActionParts {
-//         link_hit_label: _hitLabel -> PlayerActionHitAttribute,
-//         link_hit_attr_label: _hitAttrLabel -> PlayerActionHitAttribute,
-//         link_ab_hit_attr_label: _abHitAttrLabel -> PlayerActionHitAttribute
-//     }
-// );
-
 link_data_struct!(
     PlayerAction {
         link_next_action: _NextAction -> PlayerAction
@@ -361,23 +353,6 @@ link_data_struct_multi!(
     }
 );
 
-macro_rules! link_hit_attr_levels {
-    ($name:ty {$($func:ident : $dkey:ident -> $dname:ident),*}) => {
-        #[allow(dead_code)]
-        impl $name {
-            $(pub fn $func(&self, conn: &Connection) -> Result<Vec<$dname>> {
-                let len = self.$dkey.len();
-                if len > 4 && &self.$dkey[(len-4)..(len-2)] == "LV"{
-                    let skey = &self.$dkey[0..(len-2)].to_string();
-                    return $dname::populate_conditionally(&conn, "PlayerActionHitAttribute._Id LIKE ? || \'%\'", &[&skey]);
-                }else{
-                    return $dname::populate_multiple(&conn, &self.$dkey);
-                }
-            })*
-        }
-    };
-}
-
 link_hit_attr_levels! (
     ActionParts {
         link_hit_label: _hitLabel -> PlayerActionHitAttribute,
@@ -385,25 +360,3 @@ link_hit_attr_levels! (
         link_ab_hit_attr_label: _abHitAttrLabel -> PlayerActionHitAttribute
     }
 );
-
-// impl ActionParts {
-//     pub fn link_hit_label(&self, conn: &Connection) -> Result<Vec<PlayerActionHitAttribute>> {
-//         // let mut stmt = conn.prepare(stringify!(SELECT $pkname, $(($fname)),* FROM $name WHERE $pkname=?;))?;
-//         // let rows = stmt.query_map(&[&val], |r| {
-//         //     let mut x = 0;
-//         //     let mut counter = || {x+=1; return x};
-//         //     Ok($name {
-//         //         $pkname : r.get(0)?,
-//         //         $($fname: match r.get(counter()) {
-//         //             Ok(d) => d,
-//         //             Err(_e) => <$ftype>::default(),
-//         //         }),*
-//         //     })
-//         // })?;
-//         // let mut res = Vec::new();
-//         // for q_res in rows {
-//         //     res.push(q_res?);
-//         // }
-//         // return Ok(res);
-//     }
-// }

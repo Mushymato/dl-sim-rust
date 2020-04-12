@@ -1,3 +1,6 @@
+extern crate rusqlite;
+use rusqlite::{Connection, Result};
+
 db_data_struct! {
     pub struct SkillChainData {
         _Id: u32,
