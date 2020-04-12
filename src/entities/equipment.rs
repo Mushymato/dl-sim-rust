@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 extern crate rusqlite;
-use crate::data::ability::AbilityData;
-use crate::data::action::PlayerAction;
-use crate::data::label::TextLabel;
-use crate::data::skill::SkillData;
+use crate::entities::ability::AbilityData;
+use crate::entities::action::PlayerAction;
+use crate::entities::label::TextLabel;
+use crate::entities::skill::SkillData;
 use rusqlite::{Connection, Result, NO_PARAMS};
 
 db_data_struct! {

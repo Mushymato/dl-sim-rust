@@ -1,11 +1,11 @@
 extern crate rusqlite;
 use rusqlite::{Connection, Result};
 
-mod data;
-use data::*;
+mod entities;
+use entities::*;
 
 fn main() -> Result<()> {
-    let conn = Connection::open(data::DB_FILE)?;
+    let conn = Connection::open(entities::DB_FILE)?;
 
     let all_chara = CharaData::populate_all(&conn)?;
     for (_, chara) in &all_chara {

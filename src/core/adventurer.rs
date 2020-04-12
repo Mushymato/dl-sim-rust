@@ -1,2 +1,2 @@
-use crate::data::character::*
+use crate::entities::character::*
 

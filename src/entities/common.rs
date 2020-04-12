@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::data::action::PlayerAction;
-use crate::data::label::TextLabel;
+use crate::entities::action::PlayerAction;
+use crate::entities::label::TextLabel;
 
 extern crate rusqlite;
 use rusqlite::{Connection, Result, NO_PARAMS};

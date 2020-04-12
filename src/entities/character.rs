@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 extern crate rusqlite;
-use crate::data::ability::{AbilityData, ExAbilityData};
-use crate::data::action::PlayerAction;
-use crate::data::equipment::DragonData;
-use crate::data::label::TextLabel;
-use crate::data::skill::SkillData;
+use crate::entities::ability::{AbilityData, ExAbilityData};
+use crate::entities::action::PlayerAction;
+use crate::entities::equipment::DragonData;
+use crate::entities::label::TextLabel;
+use crate::entities::skill::SkillData;
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{Connection, Result, NO_PARAMS};
 
