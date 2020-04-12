@@ -269,6 +269,8 @@ pub mod character;
 pub use character::*;
 pub mod equipment;
 pub use equipment::*;
+pub mod enemy;
+pub use enemy::*;
 
 #[cfg(test)]
 mod tests {

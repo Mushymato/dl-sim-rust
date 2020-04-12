@@ -11,7 +11,6 @@ use rusqlite::{Connection, Result, NO_PARAMS};
 
 from_sql_enum! {
     pub enum ModeChange {
-        // 2: fs, 7: auto
         SKILL = 1,
         STANCE = 2,
         DRAGON = 3

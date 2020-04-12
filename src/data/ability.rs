@@ -6,7 +6,6 @@ use rusqlite::{Connection, Result, NO_PARAMS};
 
 from_sql_enum! {
     pub enum TargetAction {
-        // 2: fs, 7: auto
         BURST = 2,
         S1 = 3,
         S2 = 4,
@@ -69,8 +68,8 @@ from_sql_enum! {
         STAT = 1,
         AFFLICTION_RESIST = 2,
         AFFLICTION_PROC_RATE = 3,
-        CLASS_RESIST = 4,
-        CLASS_BANE = 5,
+        TRIBE_RESIST = 4,
+        TRIBE_BANE = 5,
         DAMAGE = 6, // skill damage, fs damage, etc
         CRITICAL_RATE = 7,
         RECOVERY_POTENCY = 8,

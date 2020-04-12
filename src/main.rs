@@ -2,7 +2,7 @@ extern crate rusqlite;
 use rusqlite::{Connection, Result};
 
 mod data;
-use data::CharaData;
+use data::*;
 
 fn main() -> Result<()> {
     let conn = Connection::open(data::DB_FILE)?;
