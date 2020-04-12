@@ -105,6 +105,18 @@ macro_rules! link_data_struct_multi {
     };
 }
 
+macro_rules! link_label {
+    ($name:ty {$($func:ident : $dkey:ident -> TextLabel),*}) => {
+        #[allow(dead_code)]
+        impl $name {
+            $(pub fn $func(&self, conn: &Connection) -> Result<String> {
+                let label = TextLabel::populate(&conn, &self.$dkey)?;
+                return Ok(label._Text);
+            })*
+        }
+    };
+}
+
 macro_rules! link_hit_attr_levels {
     ($name:ty {$($func:ident : $dkey:ident -> PlayerActionHitAttribute),*}) => {
         #[allow(dead_code)]
@@ -232,6 +244,8 @@ pub mod label;
 pub use label::*;
 pub mod character;
 pub use character::*;
+pub mod equipment;
+pub use equipment::*;
 
 #[cfg(test)]
 mod tests {

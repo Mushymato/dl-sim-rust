@@ -1,6 +1,8 @@
 extern crate rusqlite;
 use crate::data::ability::{AbilityData, ExAbilityData};
 use crate::data::action::PlayerAction;
+use crate::data::equipment::DragonData;
+use crate::data::label::TextLabel;
 use crate::data::mappings::{Element, Weapon};
 use crate::data::skill::SkillData;
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
@@ -59,15 +61,15 @@ link_data_struct!(
 
 link_burst_attack_actions! (
     CharaModeData {
-        link_burst_attack: _BurstAttackId -> PlayerAction
+        link_burst_attack_actions: _BurstAttackId -> PlayerAction
     }
 );
 
 db_data_struct! {
     pub struct CharaData {
         _Id: u32,
-        pub _Name: String,
-        pub _SecondName: String,
+        _Name: String,
+        _SecondName: String,
         // _EmblemId: u32,
         pub _WeaponType: Weapon,
         pub _Rarity: u8,
@@ -143,125 +145,6 @@ db_data_struct! {
     }
 }
 
-db_data_struct! {
-    pub struct AmuletData {
-        _Id: u32,
-        pub _Name: String,
-        // _Rarity: u32,
-        // _AmuletType: u32,
-        // _MinHp: u32,
-        pub _MaxHp: u32,
-        // _MinAtk: u32,
-        pub _MaxAtk: u32,
-        pub _BaseId: u32,
-        pub _VariationId: u32,
-        // _Abilities11: u32,
-        // _Abilities12: u32,
-        _Abilities13: u32,
-        // _Abilities21: u32,
-        // _Abilities22: u32,
-        _Abilities23: u32,
-        // _Abilities31: u32,
-        // _Abilities32: u32,
-        // _Abilities33: u32,
-        // _LimitBreakId: u32,
-        pub _IsPlayable: u32
-    }
-}
-
-db_data_struct! {
-    pub struct DragonData {
-        _Id: u32,
-        pub _Name: String,
-        pub _SecondName: String,
-        // _EmblemId: u32,
-        _Rarity: u32,
-        pub _ElementalType: Element,
-        pub _BaseId: u32,
-        pub _VariationId: u32,
-        pub _IsPlayable: u32,
-        // _AnimFileName: String,
-        // _Deco1: u32,
-        // _Deco2: u32,
-        // _MinHp: u32,
-        pub _MaxHp: u32,
-        // _MinAtk: u32,
-        pub _MaxAtk: u32,
-        // _LimitBreakId: u32,
-        _Skill1: u32,
-        // _Abilities11: u32,
-        _Abilities12: u32,
-        // _Abilities21: u32,
-        _Abilities22: u32,
-        // _DragonExplosionDetail: String,
-        // _DragonExplosionIcon: String,
-        // _Profile: String,
-        // _FavoriteType: u32,
-        // _VoiceType: u32,
-        // _CvInfo: String,
-        // _CvInfoEn: String,
-        // _SellCoin: u32,
-        // _SellDewPoint: u32,
-        // _AvoidActionFront: u32, // not same as back for some dragons
-        _AvoidActionBack: u32,
-        _Transform: u32,
-        _DefaultSkill: u32,
-        _ComboMax: u32
-        // _ScaleSize: f64,
-        // _DcScaleSize: f64,
-        // _DcRotationY: f64,
-        // _ShadowSize: f64,
-        // _GaugeHeightOffset: f64,
-        // _MoveSpeed: f64,
-        // _DashSpeedRatio: f64,
-        // _TurnSpeed: f64,
-        // _IsTurnToDamageDir: u32,
-        // _IsLongRangeInGame: u32,
-        // _DragonCameraDistance: f64,
-        // _MoveType: u32,
-        // _IsLongLange: u32,
-        // _IsDetailimage: u32,
-        // _SilhouetteValue: u32
-    }
-}
-
-link_combo_chain_actions! (
-    DragonData {
-        link_combo_actions: _DefaultSkill, _ComboMax -> PlayerAction
-    }
-);
-
-db_data_struct! {
-    pub struct WeaponData {
-        _Id: u32,
-        pub _Name: String,
-        pub _Type: Weapon,
-        _Rarity: u32,
-        pub _ElementalType: Element,
-        // _MinHp: u32,
-        _MaxHp: u32,
-        // _MinAtk: u32,
-        _MaxAtk: u32,
-        // _LimitBreakId: u32,
-        _BaseId: u32,
-        _VariationId: u32,
-        // _FormId: u32,
-        // _DecBaseId: u32,
-        // _DecVariationId: u32,
-        // _BulletBaseId: u32,
-        // _BulletVariationId: u32,
-        _Skill: u32,
-        _Abilities11: u32,
-        _Abilities21: u32,
-        _IsPlayable: u32,
-        // _Text: String,
-        // _SellCoin: u32,
-        // _SellDewPoint: u32,
-        _GradeId: u8,
-        _CraftSeriesId: u8
-    }
-}
-
 link_data_struct!(
     CharaData {
         link_mode_1: _ModeId1 -> CharaModeData,
@@ -272,6 +155,53 @@ link_data_struct!(
         link_skill_2: _Skill2 -> SkillData,
         link_ex1_ability: _ExAbilityData5 -> ExAbilityData,
         link_ex2_ability: _ExAbility2Data5 -> AbilityData,
-        link_unique_dragon: _UniqueDragonId -> DragonData
+        link_unique_dragon: _UniqueDragonId -> DragonData,
+        link_dash_attack_action: _DashAttack -> PlayerAction,
+        link_dodge_action: _Avoid -> PlayerAction
     }
 );
+
+link_burst_attack_actions! {
+    CharaData {
+        link_burst_attack_actions: _BurstAttack -> PlayerAction
+    }
+}
+
+link_label! {
+    CharaData {
+        link_name: _Name -> TextLabel,
+        link_fullname: _SecondName -> TextLabel
+    }
+}
+
+impl CharaData {
+    fn max_hp(&self) -> u32 {
+        let mut s = self._MaxHp;
+        s += self._PlusHp0;
+        s += self._PlusHp1;
+        s += self._PlusHp2;
+        s += self._PlusHp3;
+        s += self._PlusHp4;
+        s += self._McFullBonusHp5;
+        if self._MaxLimitBreakCount > 4 {
+            s += self._AddMaxHp1;
+            s += self._PlusHp5;
+        }
+        return s;
+    }
+
+    fn max_atk(&self) -> u32 {
+        let mut s = self._MaxAtk;
+        s += self._PlusAtk0;
+        s += self._PlusAtk1;
+        s += self._PlusAtk2;
+        s += self._PlusAtk3;
+        s += self._PlusAtk4;
+        s += self._McFullBonusAtk5;
+        if self._MaxLimitBreakCount > 4 {
+            s += self._AddMaxAtk1;
+            s += self._PlusAtk5;
+        }
+        return s;
+    }
+}
