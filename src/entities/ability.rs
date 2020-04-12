@@ -130,9 +130,9 @@ db_data_struct! {
         // _Category: u32,
         // _AbilityIconName: String,
         // _PartyPowerWeight: u32,
-        // _UnitType: u32,
-        // _ElementalType: u32,
-        // _WeaponType: u32,
+        _UnitType: u8,
+        _ElementalType: u8,
+        _WeaponType: u8,
         _ConditionType: u32,
         _ConditionValue: f64,
         _Probability: u32,
@@ -163,7 +163,7 @@ db_data_struct! {
     pub struct AbilityData {
         _Id: u32,
         // _EventId: u32,
-        _PartyPowerWeight: u32, // might
+        // _PartyPowerWeight: u32, // might
         // _Name: String, // label
         // _Details: String, // label
         // _ViewAbilityGroupId1: u32,
@@ -210,6 +210,33 @@ db_data_struct! {
         _AbilityLimitedGroupId3: u32,
         _TargetAction3: TargetAction,
         _AbilityType3UpValue: f64
+    }
+}
+
+impl From<ExAbilityData> for AbilityData {
+    fn from(item: ExAbilityData) -> Self {
+        AbilityData {
+            _Id: item._Id,
+            _UnitType: 2, // mark this as ex ability
+            _ElementalType: item._ElementalType,
+            _WeaponType: item._WeaponType,
+            _ConditionType: item._ConditionType,
+            _ConditionValue: item._ConditionValue,
+            _Probability: item._Probability,
+            _AbilityType1: item._AbilityType1,
+            _VariousId1a: item._VariousId1,
+            _TargetAction1: item._TargetAction1,
+            _AbilityType1UpValue: item._AbilityType1UpValue0,
+            _AbilityType2: item._AbilityType2,
+            _VariousId2a: item._VariousId2,
+            _TargetAction2: item._TargetAction2,
+            _AbilityType2UpValue: item._AbilityType2UpValue0,
+            _AbilityType3: item._AbilityType3,
+            _VariousId3a: item._VariousId3,
+            _TargetAction3: item._TargetAction3,
+            _AbilityType3UpValue: item._AbilityType3UpValue0,
+            ..AbilityData::default()
+        }
     }
 }
 

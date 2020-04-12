@@ -13,6 +13,8 @@ fn main() -> Result<()> {
     let weapon_id = 30560501;
     let amulet_ids = [40050026, 40050098];
     let player = Player::new(&conn, chara_id, dragon_id, weapon_id, amulet_ids);
-    println!("{:?}", player);
+    for ab in &(player.abilities) {
+        println!("{:?}", ab);
+    }
     Ok(())
 }

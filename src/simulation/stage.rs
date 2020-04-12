@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::entities::{AmuletData, CharaData, DragonData, WeaponData};
+use crate::entities::{AbilityData, AmuletData, CharaData, DragonData, WeaponData};
 
 #[derive(Debug)]
 pub struct Player {
@@ -8,11 +8,57 @@ pub struct Player {
     dragon: DragonData,
     weapon: WeaponData,
     amulets: [AmuletData; 2],
+    pub abilities: Vec<AbilityData>,
     hp: u32,
     atk: u32,
 }
 
+macro_rules! push_if_exists {
+    ($vector:ident, $result:expr) => {
+        match $result {
+            Ok(ab) => $vector.push(ab),
+            Err(_e) => (),
+        }
+    };
+}
+
 impl Player {
+    pub fn new(
+        conn: &Connection,
+        chara_id: u32,
+        dragon_id: u32,
+        weapon_id: u32,
+        amulet_ids: [u32; 2],
+    ) -> Player {
+        let chara = CharaData::populate(&conn, &chara_id).unwrap();
+        let dragon = DragonData::populate(&conn, &dragon_id).unwrap();
+        let weapon = WeaponData::populate(&conn, &weapon_id).unwrap();
+        let amulets = [
+            AmuletData::populate(&conn, &amulet_ids[0]).unwrap(),
+            AmuletData::populate(&conn, &amulet_ids[1]).unwrap(),
+        ];
+
+        let (hp, atk) = Player::calculate_total_stats(&chara, &dragon, &weapon, &amulets);
+        let mut abilities: Vec<AbilityData> = chara.link_abilities(&conn);
+        push_if_exists!(abilities, dragon.link_ability_1(&conn));
+        push_if_exists!(abilities, dragon.link_ability_2(&conn));
+        push_if_exists!(abilities, weapon.link_ability_1(&conn));
+        push_if_exists!(abilities, weapon.link_ability_2(&conn));
+        for am in &amulets {
+            push_if_exists!(abilities, am.link_ability_1(&conn));
+            push_if_exists!(abilities, am.link_ability_2(&conn));
+        }
+        return Player {
+            chara: chara,
+            dragon: dragon,
+            weapon: weapon,
+            amulets: amulets,
+            abilities: abilities,
+            hp: hp,
+            atk: atk,
+        };
+    }
+
     /* SELECT tl._Text as _Name, fpd1._AssetGroup, fpd1._Level, fpd1._EffectId, fpd1._EffArgs1, fpd1._EffArgs2, fpd1._EffArgs3
     FROM FortPlantDetail fpd1
     INNER JOIN
@@ -80,31 +126,5 @@ impl Player {
         hp += f32::ceil((chara.max_hp() + 100) as f32 * chara_hp_mult) as u32;
         atk += f32::ceil((chara.max_atk() + 100) as f32 * chara_atk_mult) as u32;
         return (hp, atk);
-    }
-
-    pub fn new(
-        conn: &Connection,
-        chara_id: u32,
-        dragon_id: u32,
-        weapon_id: u32,
-        amulet_ids: [u32; 2],
-    ) -> Player {
-        let chara = CharaData::populate(&conn, &chara_id).unwrap();
-        let dragon = DragonData::populate(&conn, &dragon_id).unwrap();
-        let weapon = WeaponData::populate(&conn, &weapon_id).unwrap();
-        let amulets = [
-            AmuletData::populate(&conn, &amulet_ids[0]).unwrap(),
-            AmuletData::populate(&conn, &amulet_ids[1]).unwrap(),
-        ];
-        let (hp, atk) = Player::calculate_total_stats(&chara, &dragon, &weapon, &amulets);
-
-        return Player {
-            chara: chara,
-            dragon: dragon,
-            weapon: weapon,
-            amulets: amulets,
-            hp: hp,
-            atk: atk,
-        };
     }
 }

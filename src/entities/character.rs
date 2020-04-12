@@ -245,6 +245,15 @@ impl CharaData {
             }
         }
 
+        match ExAbilityData::populate(&conn, &self._ExAbilityData5) {
+            Ok(ab) => abilities.push(AbilityData::from(ab)),
+            Err(_e) => (),
+        }
+        match AbilityData::populate(&conn, &self._ExAbility2Data5) {
+            Ok(ab) => abilities.push(ab),
+            Err(_e) => (),
+        }
+
         return abilities;
     }
 }
