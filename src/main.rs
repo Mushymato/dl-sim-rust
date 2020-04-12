@@ -2,16 +2,26 @@ extern crate rusqlite;
 use rusqlite::{Connection, Result};
 
 mod data;
-use data::CharaUniqueCombo;
+use data::CharaData;
 
 fn main() -> Result<()> {
     let conn = Connection::open(data::DB_FILE)?;
 
-    let res = CharaUniqueCombo::populate(&conn, &1)?;
-    println!("{:?}", res);
-    let combo = res.link_combo_actions(&conn)?;
-    for c in combo {
-        println!("\n{:?}", c);
+    let all_chara = CharaData::populate_all(&conn)?;
+    for (_, chara) in &all_chara {
+        match chara.link_name(&conn) {
+            Ok(name) => {
+                println!("{} HP {} ATK {}", name, chara.max_hp(), chara.max_atk());
+            }
+            Err(_e) => {
+                println!(
+                    "{} HP {} ATK {}",
+                    chara._Name,
+                    chara.max_hp(),
+                    chara.max_atk()
+                );
+            }
+        }
     }
 
     // let res = PlayerAction::populate(&conn, &799000)?;

@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 extern crate rusqlite;
 use crate::data::mappings::{Affliction, SkillIndex};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, NO_PARAMS};
 
 from_sql_enum! {
     pub enum HitExecType {
@@ -265,12 +267,12 @@ db_data_struct! {
     pub struct ActionParts {
         // _Id: u32,
         _ref: u32,
-        pub _seq: u32,
+        _seq: u32,
         _seconds: f64,
         _speed: f64,
         _duration: f64,
         // _activateId: u32,
-        pub commandType: CommandType,
+        commandType: CommandType,
         _motionState: String,
         _motionFrame: u32,
         _blendDuration: f64,

@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 extern crate rusqlite;
 use crate::data::ability::AbilityData;
 use crate::data::action::PlayerAction;
 use crate::data::label::TextLabel;
 use crate::data::mappings::{Element, Weapon};
 use crate::data::skill::SkillData;
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, NO_PARAMS};
 
 db_data_struct! {
     pub struct AmuletData {
@@ -13,11 +15,11 @@ db_data_struct! {
         // _Rarity: u32,
         // _AmuletType: u32,
         // _MinHp: u32,
-        pub _MaxHp: u32,
+        _MaxHp: u32,
         // _MinAtk: u32,
-        pub _MaxAtk: u32,
-        pub _BaseId: u32,
-        pub _VariationId: u32,
+        _MaxAtk: u32,
+        _BaseId: u32,
+        _VariationId: u32,
         // _Abilities11: u32,
         // _Abilities12: u32,
         _Abilities13: u32,
@@ -28,7 +30,7 @@ db_data_struct! {
         // _Abilities32: u32,
         // _Abilities33: u32,
         // _LimitBreakId: u32,
-        pub _IsPlayable: u32
+        _IsPlayable: u32
     }
 }
 
@@ -52,17 +54,17 @@ db_data_struct! {
         _SecondName: String,
         // _EmblemId: u32,
         _Rarity: u32,
-        pub _ElementalType: Element,
-        pub _BaseId: u32,
-        pub _VariationId: u32,
-        pub _IsPlayable: u32,
+        _ElementalType: Element,
+        _BaseId: u32,
+        _VariationId: u32,
+        _IsPlayable: u32,
         // _AnimFileName: String,
         // _Deco1: u32,
         // _Deco2: u32,
         // _MinHp: u32,
-        pub _MaxHp: u32,
+        _MaxHp: u32,
         // _MinAtk: u32,
-        pub _MaxAtk: u32,
+        _MaxAtk: u32,
         // _LimitBreakId: u32,
         _Skill1: u32,
         // _Abilities11: u32,
@@ -128,9 +130,9 @@ db_data_struct! {
     pub struct WeaponData {
         _Id: u32,
         _Name: String,
-        pub _Type: Weapon,
+        _Type: Weapon,
         _Rarity: u32,
-        pub _ElementalType: Element,
+        _ElementalType: Element,
         // _MinHp: u32,
         _MaxHp: u32,
         // _MinAtk: u32,

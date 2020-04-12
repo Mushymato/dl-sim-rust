@@ -3,12 +3,12 @@ pub const DB_FILE: &str = "dl.sqlite";
 /* define */
 
 macro_rules! db_data_struct {
-    ($namevis:vis struct $name:ident { $pkvis:vis $pkname:ident : $pktype:ty, $($fvis:vis $fname:ident : $ftype:ty),* }) => {
+    ($namevis:vis struct $name:ident { $pkvis:vis $pkname:ident : $pktype:ty, $($fname:ident : $ftype:ty),* }) => {
         #[derive(Debug, Default)]
         #[allow(non_snake_case)]
         $namevis struct $name {
             $pkvis $pkname : $pktype,
-            $($fvis $fname : $ftype),*
+            $(pub $fname : $ftype),*
         }
 
         #[allow(dead_code)]
@@ -34,7 +34,6 @@ macro_rules! db_data_struct {
                     })
                 });
             }
-
             pub fn populate_multiple(conn: &Connection, val: &$pktype) -> Result<Vec<$name>>{
                 let mut stmt = conn.prepare(stringify!(SELECT $pkname, $($fname),* FROM $name WHERE $pkname=?;))?;
                 let rows = stmt.query_map(&[&val], |r| {
@@ -70,6 +69,26 @@ macro_rules! db_data_struct {
                 let mut res = Vec::new();
                 for q_res in rows {
                     res.push(q_res?);
+                }
+                return Ok(res);
+            }
+            pub fn populate_all(conn: &Connection) -> Result<HashMap<$pktype, $name>>{
+                let mut stmt = conn.prepare(stringify!(SELECT $pkname, $($fname),* FROM $name;))?;
+                let rows = stmt.query_map(NO_PARAMS, |r| {
+                    let mut x = 0;
+                    let mut counter = || {x+=1; return x};
+                    Ok($name {
+                        $pkname : r.get(0)?,
+                        $($fname: match r.get(counter()) {
+                            Ok(d) => d,
+                            Err(_e) => <$ftype>::default(),
+                        }),*
+                    })
+                })?;
+                let mut res = HashMap::new();
+                for q_res in rows {
+                    let r = q_res?;
+                    res.insert(r.$pkname.clone(), r);
                 }
                 return Ok(res);
             }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 extern crate rusqlite;
 use crate::data::ability::{AbilityData, ExAbilityData};
 use crate::data::action::PlayerAction;
@@ -6,7 +8,7 @@ use crate::data::label::TextLabel;
 use crate::data::mappings::{Element, Weapon};
 use crate::data::skill::SkillData;
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, NO_PARAMS};
 
 from_sql_enum! {
     pub enum ModeChange {
@@ -71,13 +73,13 @@ db_data_struct! {
         _Name: String,
         _SecondName: String,
         // _EmblemId: u32,
-        pub _WeaponType: Weapon,
-        pub _Rarity: u8,
+        _WeaponType: Weapon,
+        _Rarity: u8,
         _MaxLimitBreakCount: u8,
-        pub _ElementalType: Element,
+        _ElementalType: Element,
         // _CharaType: u32,
-        pub _BaseId: u32,
-        pub _VariationId: u32,
+        _BaseId: u32,
+        _VariationId: u32,
         // stats related
         // _MinHp3: u32,
         // _MinHp4: u32,
@@ -141,7 +143,7 @@ db_data_struct! {
         // _ChargeType: u32, // can move during charge?
         _MaxChargeLv: u32, // mh fs
         _UniqueDragonId: u32,
-        pub _IsPlayable: u32
+        _IsPlayable: u32
     }
 }
 
@@ -175,8 +177,8 @@ link_label! {
 }
 
 impl CharaData {
-    fn max_hp(&self) -> u32 {
-        let mut s = self._MaxHp;
+    pub fn max_hp(&self) -> u32 {
+        let mut s = 0;
         s += self._PlusHp0;
         s += self._PlusHp1;
         s += self._PlusHp2;
@@ -186,12 +188,14 @@ impl CharaData {
         if self._MaxLimitBreakCount > 4 {
             s += self._AddMaxHp1;
             s += self._PlusHp5;
+        } else {
+            s += self._MaxHp;
         }
         return s;
     }
 
-    fn max_atk(&self) -> u32 {
-        let mut s = self._MaxAtk;
+    pub fn max_atk(&self) -> u32 {
+        let mut s = 0;
         s += self._PlusAtk0;
         s += self._PlusAtk1;
         s += self._PlusAtk2;
@@ -201,7 +205,48 @@ impl CharaData {
         if self._MaxLimitBreakCount > 4 {
             s += self._AddMaxAtk1;
             s += self._PlusAtk5;
+        } else {
+            s += self._MaxAtk;
         }
         return s;
+    }
+
+    pub fn link_abilities(&self, conn: &Connection) -> Vec<AbilityData> {
+        let ability_id_lists = [
+            [
+                self._Abilities14,
+                self._Abilities13,
+                self._Abilities12,
+                self._Abilities11,
+            ],
+            [
+                self._Abilities24,
+                self._Abilities23,
+                self._Abilities22,
+                self._Abilities21,
+            ],
+            [
+                self._Abilities34,
+                self._Abilities33,
+                self._Abilities32,
+                self._Abilities31,
+            ],
+        ];
+
+        let mut abilities: Vec<AbilityData> = Vec::new();
+
+        for ab_id_list in &ability_id_lists {
+            for ab_id in ab_id_list {
+                match AbilityData::populate(&conn, &ab_id) {
+                    Ok(ab) => {
+                        abilities.push(ab);
+                        break;
+                    }
+                    Err(_e) => (),
+                }
+            }
+        }
+
+        return abilities;
     }
 }

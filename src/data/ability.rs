@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 extern crate rusqlite;
 use crate::data::mappings::{Element, SkillIndex, Weapon};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, NO_PARAMS};
 
 from_sql_enum! {
     pub enum TargetAction {
@@ -213,31 +215,10 @@ db_data_struct! {
     }
 }
 
-// use crate::data::hit::{ActionCondition, PlayerActionHitAttribute};
-
 link_data_struct! {
     AbilityData {
         link_ability_limited_group_1: _AbilityLimitedGroupId1 -> AbilityLimitedGroup,
         link_ability_limited_group_2: _AbilityLimitedGroupId2 -> AbilityLimitedGroup,
         link_ability_limited_group_3: _AbilityLimitedGroupId3 -> AbilityLimitedGroup
-    }
-}
-
-/* tmp */
-
-struct Ability {
-    ability_type: u32,
-    id_array: [u32; 3],
-    id_str: String,
-    value: f64,
-    limit_group: u32,
-    limit_value: f64,
-}
-
-impl Ability {
-    fn on(&self) {
-        match self.ability_type {
-            _ => { /* Bolb */ }
-        }
     }
 }
