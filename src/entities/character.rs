@@ -235,24 +235,22 @@ impl CharaData {
 
         for ab_id_list in &ability_id_lists {
             for ab_id in ab_id_list {
-                match AbilityData::populate(&conn, &ab_id) {
-                    Ok(ab) => {
+                if *ab_id > 0 {
+                    if let Ok(ab) = AbilityData::populate(&conn, &ab_id) {
                         abilities.push(ab);
                         break;
                     }
-                    Err(_e) => (),
                 }
             }
         }
 
-        match ExAbilityData::populate(&conn, &self._ExAbilityData5) {
-            Ok(ab) => abilities.push(AbilityData::from(ab)),
-            Err(_e) => (),
+        if let Ok(ab) = ExAbilityData::populate(&conn, &self._ExAbilityData5) {
+            abilities.push(AbilityData::from(ab));
         }
-        match AbilityData::populate(&conn, &self._ExAbility2Data5) {
-            Ok(ab) => abilities.push(ab),
-            Err(_e) => (),
-        }
+        push_if_exists!(
+            abilities,
+            AbilityData::populate(&conn, &self._ExAbility2Data5)
+        );
 
         return abilities;
     }

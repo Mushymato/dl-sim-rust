@@ -7,7 +7,7 @@ use simulation::Player;
 
 fn main() -> Result<()> {
     let conn = Connection::open(entities::DB_FILE)?;
-    let chara_id = 10540502;
+    let chara_id = 10730501;
     // let dragon_id = 20050509;
     let dragon_id = 20050507;
     let weapon_id = 30560501;

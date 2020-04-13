@@ -133,7 +133,7 @@ db_data_struct! {
         _UnitType: u8,
         _ElementalType: u8,
         _WeaponType: u8,
-        _ConditionType: u32,
+        _ConditionType: ConditionType,
         _ConditionValue: f64,
         _Probability: u32,
         _AbilityType1: AbilityType,
@@ -176,7 +176,7 @@ db_data_struct! {
         _OnSkill: u8,
         // _SkillOwner: u32,
         // _OwnerMode: u32,
-        _ConditionType: u32,
+        _ConditionType: ConditionType,
         _ExpireCondition: bool, // used for afflict guards
         _ConditionValue: f64,
         _Probability: u32,
@@ -245,5 +245,47 @@ link_data_struct! {
         link_ability_limited_group_1: _AbilityLimitedGroupId1 -> AbilityLimitedGroup,
         link_ability_limited_group_2: _AbilityLimitedGroupId2 -> AbilityLimitedGroup,
         link_ability_limited_group_3: _AbilityLimitedGroupId3 -> AbilityLimitedGroup
+    }
+}
+
+impl AbilityData {
+    fn type_var_id_iter(&self) -> [(AbilityType, [u32; 3]); 3] {
+        return [
+            (
+                self._AbilityType1,
+                [self._VariousId1a, self._VariousId1b, self._VariousId1c],
+            ),
+            (
+                self._AbilityType2,
+                [self._VariousId2a, self._VariousId2b, self._VariousId2c],
+            ),
+            (
+                self._AbilityType3,
+                [self._VariousId3a, self._VariousId3b, self._VariousId3c],
+            ),
+        ];
+    }
+    fn link_referenced_ability(&self, conn: &Connection) -> Vec<AbilityData> {
+        let mut ref_ab: Vec<AbilityData> = Vec::new();
+        for (ab_type, var_id_lst) in &AbilityData::type_var_id_iter(self) {
+            if *ab_type == AbilityType::ABILITY_REF {
+                for var_id in var_id_lst {
+                    if *var_id > 0 {
+                        push_if_exists!(ref_ab, AbilityData::populate(&conn, &var_id));
+                    }
+                }
+            }
+        }
+        return ref_ab;
+    }
+    pub fn link_all_referenced_ability(
+        conn: &Connection,
+        ablities: &Vec<AbilityData>,
+    ) -> Vec<AbilityData> {
+        let mut ref_ab: Vec<AbilityData> = Vec::new();
+        for ab in ablities {
+            ref_ab.extend(ab.link_referenced_ability(&conn));
+        }
+        return ref_ab;
     }
 }

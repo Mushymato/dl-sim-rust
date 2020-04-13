@@ -1,6 +1,7 @@
 use rusqlite::Connection;
 
 use crate::entities::{AbilityData, AmuletData, CharaData, DragonData, WeaponData};
+use crate::push_if_exists;
 
 #[derive(Debug)]
 pub struct Player {
@@ -11,15 +12,6 @@ pub struct Player {
     pub abilities: Vec<AbilityData>,
     hp: u32,
     atk: u32,
-}
-
-macro_rules! push_if_exists {
-    ($vector:ident, $result:expr) => {
-        match $result {
-            Ok(ab) => $vector.push(ab),
-            Err(_e) => (),
-        }
-    };
 }
 
 impl Player {
@@ -39,15 +31,8 @@ impl Player {
         ];
 
         let (hp, atk) = Player::calculate_total_stats(&chara, &dragon, &weapon, &amulets);
-        let mut abilities: Vec<AbilityData> = chara.link_abilities(&conn);
-        push_if_exists!(abilities, dragon.link_ability_1(&conn));
-        push_if_exists!(abilities, dragon.link_ability_2(&conn));
-        push_if_exists!(abilities, weapon.link_ability_1(&conn));
-        push_if_exists!(abilities, weapon.link_ability_2(&conn));
-        for am in &amulets {
-            push_if_exists!(abilities, am.link_ability_1(&conn));
-            push_if_exists!(abilities, am.link_ability_2(&conn));
-        }
+        let abilities: Vec<AbilityData> =
+            Player::link_all_abilities(&conn, &chara, &dragon, &weapon, &amulets);
         return Player {
             chara: chara,
             dragon: dragon,
@@ -57,6 +42,31 @@ impl Player {
             hp: hp,
             atk: atk,
         };
+    }
+
+    fn link_all_abilities(
+        conn: &Connection,
+        chara: &CharaData,
+        dragon: &DragonData,
+        weapon: &WeaponData,
+        amulets: &[AmuletData; 2],
+    ) -> Vec<AbilityData> {
+        let mut abilities: Vec<AbilityData> = chara.link_abilities(&conn);
+        push_if_exists!(abilities, dragon.link_ability_1(&conn));
+        push_if_exists!(abilities, dragon.link_ability_2(&conn));
+        push_if_exists!(abilities, weapon.link_ability_1(&conn));
+        push_if_exists!(abilities, weapon.link_ability_2(&conn));
+        for am in amulets {
+            push_if_exists!(abilities, am.link_ability_1(&conn));
+            push_if_exists!(abilities, am.link_ability_2(&conn));
+        }
+        let mut ref_ab = AbilityData::link_all_referenced_ability(&conn, &abilities);
+        while ref_ab.len() > 0 {
+            let next_ref_ab = AbilityData::link_all_referenced_ability(&conn, &ref_ab);
+            abilities.extend(ref_ab);
+            ref_ab = next_ref_ab;
+        }
+        return abilities;
     }
 
     /* SELECT tl._Text as _Name, fpd1._AssetGroup, fpd1._Level, fpd1._EffectId, fpd1._EffArgs1, fpd1._EffArgs2, fpd1._EffArgs3

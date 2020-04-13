@@ -179,7 +179,7 @@ macro_rules! link_combo_chain_actions {
 
 macro_rules! from_sql_enum(
     (pub enum $name:ident {$($ename:ident = $evalue:tt),*}) => {
-        #[derive(Debug, PartialEq, Eq)]
+        #[derive(Debug, PartialEq, Eq, Copy, Clone)]
         #[allow(non_camel_case_types)]
         pub enum $name {
             UNKNOWN = -1,
@@ -200,6 +200,15 @@ macro_rules! from_sql_enum(
         }
     }
 );
+
+#[macro_export]
+macro_rules! push_if_exists {
+    ($vector:ident, $result:expr) => {
+        if let Ok(ab) = $result {
+            $vector.push(ab);
+        }
+    };
+}
 
 // pub mod mappings {
 //     extern crate rusqlite;
