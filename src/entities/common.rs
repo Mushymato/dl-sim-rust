@@ -50,6 +50,43 @@ link_data_struct! {
     }
 }
 
+impl WeaponType {
+    pub fn link_burst_attack_actions(&self, conn: &Connection) -> Result<Vec<PlayerAction>> {
+        return PlayerAction::populate_conditionally(
+            &conn,
+            "PlayerAction._Id IN (?,?,?,?)",
+            &[
+                &self._BurstChargePhase1,
+                &self._BurstChargePhase2,
+                &self._ChargeMarker,
+                &self._ChargeCancel,
+            ],
+        );
+    }
+    pub fn link_combo_chain_actions(&self, conn: &Connection) -> Result<Vec<PlayerAction>> {
+        return PlayerAction::populate_conditionally(
+            &conn,
+            "PlayerAction._Id IN (?,?,?,?,?,?)",
+            &[
+                &self._DefaultSkill01,
+                &self._DefaultSkill02,
+                &self._DefaultSkill03,
+                &self._DefaultSkill04,
+                &self._DefaultSkill05,
+                &self._DefaultSkill05Ex,
+            ],
+        );
+    }
+}
+// ($name:ty {$($func:ident : $dkey:ident, $cmaxkey:ident -> PlayerAction),*}) => {
+//     #[allow(dead_code)]
+//     impl $name {
+//         $(pub fn $func(&self, conn: &Connection) -> Result<Vec<PlayerAction>> {
+//             return PlayerAction::populate_conditionally(&conn, "PlayerAction._Id >= ? AND PlayerAction._Id < ?", &[&self.$dkey, &(self.$dkey+self.$cmaxkey)]);
+//         })*
+//     }
+// };
+
 db_data_struct! {
     pub struct AbnormalStatusType {
         _Id: u32,

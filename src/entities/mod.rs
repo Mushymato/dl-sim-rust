@@ -3,12 +3,12 @@ pub const DB_FILE: &str = "dl.sqlite";
 /* define */
 
 macro_rules! db_data_struct {
-    ($namevis:vis struct $name:ident { $pkvis:vis $pkname:ident : $pktype:ty, $($fname:ident : $ftype:ty),* }) => {
+    ($namevis:vis struct $name:ident { $pkname:ident : $pktype:ty, $($fname:ident : $ftype:ty),* }) => {
         #[derive(Debug, Default)]
         #[allow(non_snake_case)]
         $namevis struct $name {
-            $pkvis $pkname : $pktype,
-            $(pub $fname : $ftype),*
+            $namevis $pkname : $pktype,
+            $($namevis $fname : $ftype),*
         }
 
         #[allow(dead_code)]

@@ -3,13 +3,15 @@ use rusqlite::Connection;
 use crate::entities::{AbilityData, AmuletData, CharaData, DragonData, WeaponData};
 use crate::push_if_exists;
 
+use crate::simulation::AbilityHandler;
+
 #[derive(Debug)]
 pub struct Player {
     chara: CharaData,
     dragon: DragonData,
     weapon: WeaponData,
     amulets: [AmuletData; 2],
-    pub abilities: Vec<AbilityData>,
+    pub abilities: Vec<AbilityHandler>,
     hp: u32,
     atk: u32,
 }
@@ -31,7 +33,7 @@ impl Player {
         ];
 
         let (hp, atk) = Player::calculate_total_stats(&chara, &dragon, &weapon, &amulets);
-        let abilities: Vec<AbilityData> =
+        let abilities: Vec<AbilityHandler> =
             Player::link_all_abilities(&conn, &chara, &dragon, &weapon, &amulets);
         return Player {
             chara: chara,
@@ -50,7 +52,7 @@ impl Player {
         dragon: &DragonData,
         weapon: &WeaponData,
         amulets: &[AmuletData; 2],
-    ) -> Vec<AbilityData> {
+    ) -> Vec<AbilityHandler> {
         let mut abilities: Vec<AbilityData> = chara.link_abilities(&conn);
         push_if_exists!(abilities, dragon.link_ability_1(&conn));
         push_if_exists!(abilities, dragon.link_ability_2(&conn));
@@ -66,7 +68,10 @@ impl Player {
             abilities.extend(ref_ab);
             ref_ab = next_ref_ab;
         }
-        return abilities;
+        return abilities
+            .into_iter()
+            .map(|ab| AbilityHandler::new(ab))
+            .collect();
     }
 
     /* SELECT tl._Text as _Name, fpd1._AssetGroup, fpd1._Level, fpd1._EffectId, fpd1._EffArgs1, fpd1._EffArgs2, fpd1._EffArgs3

@@ -30,7 +30,7 @@ db_data_struct! {
 
 link_combo_chain_actions! {
     CharaUniqueCombo {
-        link_combo_actions: _ActionId, _MaxComboNum -> PlayerAction
+        link_combo_chain_actions: _ActionId, _MaxComboNum -> PlayerAction
     }
 }
 

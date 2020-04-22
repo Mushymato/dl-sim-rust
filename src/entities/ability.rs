@@ -249,7 +249,7 @@ link_data_struct! {
 }
 
 impl AbilityData {
-    fn type_var_id_iter(&self) -> [(AbilityType, [u32; 3]); 3] {
+    pub fn type_var_id_list(&self) -> [(AbilityType, [u32; 3]); 3] {
         return [
             (
                 self._AbilityType1,
@@ -267,7 +267,7 @@ impl AbilityData {
     }
     fn link_referenced_ability(&self, conn: &Connection) -> Vec<AbilityData> {
         let mut ref_ab: Vec<AbilityData> = Vec::new();
-        for (ab_type, var_id_lst) in &AbilityData::type_var_id_iter(self) {
+        for (ab_type, var_id_lst) in &AbilityData::type_var_id_list(self) {
             if *ab_type == AbilityType::ABILITY_REF {
                 for var_id in var_id_lst {
                     if *var_id > 0 {
